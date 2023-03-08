@@ -50,27 +50,36 @@ function main()
         mkpath(OUTPUT_DIR)
     end
     n::Int = 10^7 + 1
-    p::Float64 = 0.5
-    powers = 2:7
-    points::Vector{Int} = [10^i for i in powers]
+
+    p_points = [0.1, 0.5, 0.9]
+    points::Vector{Int} = [10^i for i in 2:7]
+    mean_errors = []
+    variance_errors = []
     points_len = length(points)
-    dist, mean, variance = @time get_distribution(n, p, points)
-    mean_teoretical = get_mean_teoretical(p) .* ones(points_len)
-    mean_error = abs.((mean_teoretical - mean) / mean_teoretical)
-    variance_teoretical = get_variance_teoretical(p) .* ones(points_len)
-    variance_error = abs.((variance_teoretical - variance) / variance_teoretical)
+    for (i, p) in enumerate(p_points)
+        println("p = $p")
+        dist, mean, variance = get_distribution(n, p, points)
+        mean_teoretical = get_mean_teoretical(p)
+        mean_error = abs.((mean_teoretical .- mean) / mean_teoretical)
+        variance_teoretical = get_variance_teoretical(p)
+        variance_error = abs.((variance_teoretical .- variance) / variance_teoretical)
+        # push to mean_errors
+        push!(mean_errors, mean_error)
+        # push to variances_errors
+        push!(variance_errors, variance_error)
+    end
 
+    labels = ["p = 0.1" "p = 0.5" "p = 0.9"]
 
-    scatter(powers, mean, label="mean computed")
-    plot!(powers, mean_teoretical, label="mean teoretical")
-    savefig("$OUTPUT_DIR/mean.png")
-    scatter(powers, variance, label="variance computed")
-    plot!(powers, variance_teoretical, label="variance teoretical")
-    savefig("$OUTPUT_DIR/variance.png")
-    scatter(powers, 100 * mean_error, title="mean error", xlabel="10^k", ylabel="error [%]", label=nothing, yscale=:log10)
+    scatter(points, 100 .* [mean_errors], title="mean error", xlabel="n", ylabel="error [%]", label=labels, xscale=:log10, yscale=:log10)
     savefig("$OUTPUT_DIR/mean_error.png")
-    scatter(powers, 100 * variance_error, title="variance error", xlabel="10^k", ylabel="error [%]", label=nothing, yscale=:log10)
+
+    plot()
+
+    scatter(points, 100 .* [variance_errors], title="variance error", xlabel="n", ylabel="error [%]", label=labels, xscale=:log10, yscale=:log10)
+
     savefig("$OUTPUT_DIR/variance_error.png")
+
 
 end
 main()

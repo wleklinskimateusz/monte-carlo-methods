@@ -1,1 +1,4 @@
 output
+*.zip
+*.pdf
+.DS_Store
